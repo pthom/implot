@@ -48,6 +48,16 @@
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
 
+// IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API is always defined (even when building python bindings),
+// but is used as a marker to exclude certain functions from the python binding code.
+#define IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+// IMGUI_BUNDLE_PYTHON_API is defined when building the python bindings.
+#ifdef IMGUI_BUNDLE_PYTHON_API
+#include <vector>
+#endif
+// [/ADAPT_IMGUI_BUNDLE]
+
+
 //-----------------------------------------------------------------------------
 // [SECTION] Macros and Defines
 //-----------------------------------------------------------------------------
@@ -695,6 +705,25 @@ IMPLOT_API bool BeginSubplots(const char* title_id,
                              ImPlotSubplotFlags flags = 0,
                              float* row_ratios        = nullptr,
                              float* col_ratios        = nullptr);
+
+#ifdef IMGUI_BUNDLE_PYTHON_API
+struct SubplotsRowColRatios
+{
+    std::vector<float> row_ratios;
+    std::vector<float> col_ratios;
+};
+IMPLOT_API inline bool BeginSubplotsWithRatios(const char* title_id,
+                              int rows,
+                              int cols,
+                              const ImVec2& size,
+                              ImPlotSubplotFlags flags = 0,
+                              SubplotsRowColRatios* row_col_ratios = nullptr)
+{
+    if (row_col_ratios == nullptr)
+        return BeginSubplots(title_id, rows, cols, size, flags, nullptr , nullptr);
+    return BeginSubplots(title_id, rows, cols, size, flags, row_col_ratios->row_ratios.data(), row_col_ratios->col_ratios.data());
+}
+#endif
 
 // Only call EndSubplots() if BeginSubplots() returns true! Typically called at the end
 // of an if statement conditioned on BeginSublots(). See example above.
