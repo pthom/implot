@@ -1,3 +1,5 @@
+extern bool gLogButtonBehavior;
+
 // MIT License
 
 // Copyright (c) 2023 Evan Pezent
@@ -133,6 +135,7 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 #include "implot_internal.h"
 
 #include <stdlib.h>
+#include <unordered_map>
 
 // Support for pre-1.82 versions. Users on 1.82+ can use 0 (default) flags to mean "all corners" but in order to support older versions we are more explicit.
 #if (IMGUI_VERSION_NUM < 18102) && !defined(ImDrawFlags_RoundCornersAll)
@@ -160,6 +163,57 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 #ifndef GImPlot
 ImPlotContext* GImPlot = nullptr;
 #endif
+
+//-----------------------------------------------------------------------------
+// Specific to ImGui Bundle: enable dragging the plot when inside imgui-node-editor
+// (We replace ImGui::PlotButtonBehavior by our own on the top-level plot)
+// Search for CAN_DRAG_PLOT_IN_NODE_EDITOR in this file to see the changes.
+//-----------------------------------------------------------------------------
+static bool gIsHoveringAnySubWidget = false; // true if hovering DragLineX, DragLineY, DragRect, ...
+#define PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR  { gIsHoveringAnySubWidget = true; }
+
+bool MyPlotButtonBehavior(ImPlotPlot& plot)
+{
+    bool plot_clicked;
+    {
+        struct PlotMouseButtonInfo_
+        {
+            bool   MouseInside = false;
+            bool   MouseDown = false;
+        };
+        static std::unordered_map<ImGuiID, PlotMouseButtonInfo_> sPlotMouseButtonInfo;
+        if (sPlotMouseButtonInfo.find(plot.ID) == sPlotMouseButtonInfo.end())
+            sPlotMouseButtonInfo[plot.ID] = PlotMouseButtonInfo_();
+
+        PlotMouseButtonInfo_& mouseInfo = sPlotMouseButtonInfo[plot.ID];
+        PlotMouseButtonInfo_ previousMouseInfo = mouseInfo;
+        mouseInfo.MouseDown = ImGui::IsMouseDown(0) || ImGui::IsMouseDown(1) || ImGui::IsMouseDown(2);
+        mouseInfo.MouseInside = ImGui::IsMouseHoveringRect(plot.PlotRect.Min, plot.PlotRect.Max);
+
+        bool stayedInside = mouseInfo.MouseInside && previousMouseInfo.MouseInside;
+        plot.Held = false;
+        plot.Hovered = false;
+
+        if (stayedInside)
+        {
+            if ( mouseInfo.MouseDown && !previousMouseInfo.MouseDown && !gIsHoveringAnySubWidget)
+                plot_clicked = true;
+
+            if ( mouseInfo.MouseDown && previousMouseInfo.MouseDown && !gIsHoveringAnySubWidget)
+                plot.Held = true;
+
+            if (mouseInfo.MouseInside && !gIsHoveringAnySubWidget)
+                plot.Hovered = true;
+        }
+        //        printf("MyPlotButtonBehavior plot.Held=%i plot.Hovered=%d gIsHoveringLineOrRect=%d plotRect=%f, %f, %f, %f, MousePos=%f, %f, MouseInside=%d\n",
+        //               plot.Held, plot.Hovered, gIsHoveringAnySubWidget,
+        //                plot.PlotRect.Min.x, plot.PlotRect.Min.y, plot.PlotRect.Max.x, plot.PlotRect.Max.y,
+        //                ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
+        //                mouseInfo.MouseInside);
+    }
+    gIsHoveringAnySubWidget = false;
+    return plot_clicked;
+}
 
 //-----------------------------------------------------------------------------
 // Struct Implementations
@@ -672,6 +726,9 @@ bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hov
         bool item_clk = ImHasFlag(items.Legend.Flags, ImPlotLegendFlags_NoButtons)
                       ? false
                       : ImGui::ButtonBehavior(button_bb, item->ID, &item_hov, &item_hld);
+        // CAN_DRAG_PLOT_IN_NODE_EDITOR
+        if (item_hov || item_hld)
+            PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
         if (item_clk)
             item->Show = !item->Show;
@@ -1846,7 +1903,14 @@ bool UpdateInput(ImPlotPlot& plot) {
     const ImGuiButtonFlags axis_button_flags = ImGuiButtonFlags_FlattenChildren
                                              | plot_button_flags;
 
-    const bool plot_clicked = ImGui::ButtonBehavior(plot.PlotRect,plot.ID,&plot.Hovered,&plot.Held,plot_button_flags);
+    // CAN_DRAG_PLOT_IN_NODE_EDITOR
+    bool plot_clicked;
+    if (gp.CanDragPlotInNodeEditor)
+            plot_clicked = MyPlotButtonBehavior(plot);
+    else
+        plot_clicked = ImGui::ButtonBehavior(plot.PlotRect,plot.ID,&plot.Hovered,&plot.Held,plot_button_flags);
+
+
 #if (IMGUI_VERSION_NUM < 18966)
     ImGui::SetItemAllowOverlap(); // Handled by ButtonBehavior()
 #endif
@@ -1881,6 +1945,9 @@ bool UpdateInput(ImPlotPlot& plot) {
         if (xax.Enabled) {
             ImGui::KeepAliveID(xax.ID);
             x_click[i]  = ImGui::ButtonBehavior(xax.HoverRect,xax.ID,&xax.Hovered,&xax.Held,axis_button_flags);
+            // CAN_DRAG_PLOT_IN_NODE_EDITOR
+            if (xax.Hovered || xax.Held)
+                PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
             if (x_click[i] && IO.MouseDoubleClicked[gp.InputMap.Fit])
                 plot.FitThisFrame = xax.FitThisFrame = true;
             xax.Held  = xax.Held && can_pan;
@@ -1894,6 +1961,9 @@ bool UpdateInput(ImPlotPlot& plot) {
         if (yax.Enabled) {
             ImGui::KeepAliveID(yax.ID);
             y_click[i]  = ImGui::ButtonBehavior(yax.HoverRect,yax.ID,&yax.Hovered,&yax.Held,axis_button_flags);
+            // CAN_DRAG_PLOT_IN_NODE_EDITOR
+            if (yax.Hovered || yax.Held)
+                PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
             if (y_click[i] && IO.MouseDoubleClicked[gp.InputMap.Fit])
                 plot.FitThisFrame = yax.FitThisFrame = true;
             yax.Held  = yax.Held && can_pan;
@@ -3061,6 +3131,9 @@ void EndPlot() {
         ImGui::KeepAliveID(plot.Items.ID);
         ImGui::ButtonBehavior(legend.RectClamped, plot.Items.ID, &legend.Hovered, &legend.Held, legend_button_flags);
         legend.Hovered = legend.Hovered || (ImGui::IsWindowHovered() && legend.RectClamped.Contains(IO.MousePos));
+        // CAN_DRAG_PLOT_IN_NODE_EDITOR
+        if (legend.Held || legend.Hovered)
+            PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
         if (legend_scrollable) {
             if (legend.Hovered) {
@@ -3454,6 +3527,9 @@ bool BeginSubplots(const char* title, int rows, int cols, const ImVec2& size, Im
             const ImRect sep_bb = ImRect(subplot.GridRect.Min.x, ypos-SUBPLOT_SPLITTER_HALF_THICKNESS, subplot.GridRect.Max.x, ypos+SUBPLOT_SPLITTER_HALF_THICKNESS);
             bool sep_hov = false, sep_hld = false;
             const bool sep_clk = ImGui::ButtonBehavior(sep_bb, sep_id, &sep_hov, &sep_hld, ImGuiButtonFlags_FlattenChildren | ImGuiButtonFlags_PressedOnClick | ImGuiButtonFlags_PressedOnDoubleClick);
+            // CAN_DRAG_PLOT_IN_NODE_EDITOR
+            if (sep_hld || sep_hov)
+                PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
             if ((sep_hov && G.HoveredIdTimer > SUBPLOT_SPLITTER_FEEDBACK_TIMER) || sep_hld) {
                 if (sep_clk && ImGui::IsMouseDoubleClicked(0)) {
                     float p = (subplot.RowRatios[r] + subplot.RowRatios[r+1])/2;
@@ -3484,6 +3560,9 @@ bool BeginSubplots(const char* title, int rows, int cols, const ImVec2& size, Im
             const ImRect sep_bb = ImRect(xpos-SUBPLOT_SPLITTER_HALF_THICKNESS, subplot.GridRect.Min.y, xpos+SUBPLOT_SPLITTER_HALF_THICKNESS, subplot.GridRect.Max.y);
             bool sep_hov = false, sep_hld = false;
             const bool sep_clk = ImGui::ButtonBehavior(sep_bb, sep_id, &sep_hov, &sep_hld, ImGuiButtonFlags_FlattenChildren | ImGuiButtonFlags_PressedOnClick | ImGuiButtonFlags_PressedOnDoubleClick);
+            // CAN_DRAG_PLOT_IN_NODE_EDITOR
+            if (sep_hld || sep_hov)
+                PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
             if ((sep_hov && G.HoveredIdTimer > SUBPLOT_SPLITTER_FEEDBACK_TIMER) || sep_hld) {
                 if (sep_clk && ImGui::IsMouseDoubleClicked(0)) {
                     float p = (subplot.ColRatios[c] + subplot.ColRatios[c+1])/2;
@@ -3580,6 +3659,9 @@ void EndSubplots() {
         ImGui::KeepAliveID(subplot.Items.ID);
         ImGui::ButtonBehavior(legend.RectClamped, subplot.Items.ID, &legend.Hovered, &legend.Held, legend_button_flags);
         legend.Hovered = legend.Hovered || (subplot.FrameHovered && legend.RectClamped.Contains(ImGui::GetIO().MousePos));
+        // CAN_DRAG_PLOT_IN_NODE_EDITOR
+        if (legend.Held || legend.Hovered)
+            PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
         if (legend_scrollable) {
             if (legend.Hovered) {
@@ -3925,6 +4007,9 @@ bool DragPoint(int n_id, double* x, double* y, const ImVec4& col, float radius, 
         if (out_hovered) *out_hovered = hovered;
         if (out_held)    *out_held    = held;
     }
+    // CAN_DRAG_PLOT_IN_NODE_EDITOR
+    if (hovered || held)
+        PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
     bool modified = false;
     if (held && ImGui::IsMouseDragging(0)) {
@@ -3974,6 +4059,9 @@ bool DragLineX(int n_id, double* value, const ImVec4& col, float thickness, ImPl
         if (out_hovered) *out_hovered = hovered;
         if (out_held)    *out_held    = held;
     }
+    // CAN_DRAG_PLOT_IN_NODE_EDITOR
+    if (hovered || held)
+        PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
     if ((hovered || held) && show_curs)
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
@@ -4030,6 +4118,9 @@ bool DragLineY(int n_id, double* value, const ImVec4& col, float thickness, ImPl
         if (out_hovered) *out_hovered = hovered;
         if (out_held)    *out_held    = held;
     }
+    // CAN_DRAG_PLOT_IN_NODE_EDITOR
+    if (hovered || held)
+        PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
     if ((hovered || held) && show_curs)
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
@@ -4106,6 +4197,9 @@ bool DragRect(int n_id, double* x_min, double* y_min, double* x_max, double* y_m
         if (out_hovered) *out_hovered = hovered;
         if (out_held)    *out_held    = held;
     }
+    // CAN_DRAG_PLOT_IN_NODE_EDITOR
+    if (hovered || held)
+        PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
 
     if ((hovered || held) && show_curs)
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
@@ -4129,6 +4223,9 @@ bool DragRect(int n_id, double* x_min, double* y_min, double* x_max, double* y_m
             if (out_hovered) *out_hovered = *out_hovered || hovered;
             if (out_held)    *out_held    = *out_held    || held;
         }
+        // CAN_DRAG_PLOT_IN_NODE_EDITOR
+        if (hovered || held)
+            PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
         if ((hovered || held) && show_curs)
             ImGui::SetMouseCursor(cur[i]);
 
@@ -4151,6 +4248,9 @@ bool DragRect(int n_id, double* x_min, double* y_min, double* x_max, double* y_m
             if (out_hovered) *out_hovered = *out_hovered || hovered;
             if (out_held)    *out_held    = *out_held    || held;
         }
+        // CAN_DRAG_PLOT_IN_NODE_EDITOR
+        if (hovered || held)
+            PREVENT_PLOT_DRAGGING_IN_NODE_EDITOR;
         if ((hovered || held) && show_curs)
             h[i] ? ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS) : ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
         if (held && ImGui::IsMouseDragging(0)) {
