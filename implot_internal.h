@@ -1267,6 +1267,9 @@ struct ImPlotContext {
     ImPool<ImPlotAlignmentData> AlignmentData;
     ImPlotAlignmentData*        CurrentAlignmentH;
     ImPlotAlignmentData*        CurrentAlignmentV;
+
+    // Specific to ImGui Bundle, when used inside imgui-node-editor
+    bool CanDragPlotInNodeEditor = false;
 };
 
 //-----------------------------------------------------------------------------
