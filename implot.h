@@ -544,9 +544,28 @@ struct ImPlotStyle {
     ImVec2  AnnotationPadding;       // = 2,2     text padding around annotation labels
     ImVec2  FitPadding;              // = 0,0     additional fit padding as a percentage of the fit extents (e.g. ImVec2(0.1f,0.1f) adds 10% to the fit extents of X and Y)
     ImVec2  PlotDefaultSize;         // = 400,300 default size used when ImVec2(0,0) is passed to BeginPlot
-    ImVec2  PlotMinSize;             // = 200,150 minimum size plot frame can be when shrunk
+
+    // = 200,150 minimum size plot frame can be when shrunk
+    ImVec2  PlotMinSize;
+
+
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API \
     // style colors
     ImVec4  Colors[ImPlotCol_COUNT]; // Array of styling colors. Indexable with ImPlotCol_ enums.
+#endif
+
+    // [ADAPT_IMGUI_BUNDLE]
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    // python adapter for ImPlotStyle::Colors[ImPlotCol_COUNT]
+    // You can query and modify those values (0 <= idxColor < implot.Col_.count)
+
+    // Array of styling colors (index from implot.Col_.xxx)
+    inline IMPLOT_API  ImVec4& Color_(size_t idxColor) { IM_ASSERT( (idxColor >=0) && (idxColor < ImPlotCol_COUNT)); return Colors[idxColor]; }
+    // Array of styling colors (index from implot.Col_.xxx)
+    inline IMPLOT_API  void SetColor_(size_t idxColor, ImVec4 color) { IM_ASSERT( (idxColor >=0) && (idxColor < ImPlotCol_COUNT)); Colors[idxColor] = color; }
+#endif
+    // [/ADAPT_IMGUI_BUNDLE]
+
     // colormap
     ImPlotColormap Colormap;         // The current colormap. Set this to either an ImPlotColormap_ enum or an index returned by AddColormap.
     // settings/flags
