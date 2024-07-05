@@ -171,7 +171,7 @@ static bool gIsHoveringAnySubWidget = false; // true if hovering DragLineX, Drag
 
 bool MyPlotButtonBehavior(ImPlotPlot& plot)
 {
-    bool plot_clicked;
+    bool plot_clicked = false;
     {
         struct PlotMouseButtonInfo_
         {
