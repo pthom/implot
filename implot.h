@@ -54,6 +54,7 @@
 // IMGUI_BUNDLE_PYTHON_API is defined when building the python bindings.
 #ifdef IMGUI_BUNDLE_PYTHON_API
 #include <vector>
+struct BoxedValue { double value; };
 #endif
 // [/ADAPT_IMGUI_BUNDLE]
 
@@ -781,8 +782,14 @@ IMPLOT_API void EndSubplots();
 IMPLOT_API void SetupAxis(ImAxis axis, const char* label=nullptr, ImPlotAxisFlags flags=0);
 // Sets an axis range limits. If ImPlotCond_Always is used, the axes limits will be locked. Inversion with v_min > v_max is not supported; use SetupAxisLimits instead.
 IMPLOT_API void SetupAxisLimits(ImAxis axis, double v_min, double v_max, ImPlotCond cond = ImPlotCond_Once);
-// Links an axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot.
-IMPLOT_API void SetupAxisLinks(ImAxis axis, double* link_min, double* link_max);
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+    // Links an axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot.
+    IMPLOT_API void SetupAxisLinks(ImAxis axis, double* link_min, double* link_max);
+#endif
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    // Links an axis range limits to external values. Use BoxedValue to transmit values (which will be updated after EndPlot).
+    IMPLOT_API inline void SetupAxisLinks(ImAxis axis, BoxedValue* link_min, BoxedValue* link_max) { SetupAxisLinks(axis, &link_min->value, &link_max->value); }
+#endif
 // Sets the format of numeric axis labels via formater specifier (default="%g"). Formated values will be double (i.e. use %f).
 IMPLOT_API void SetupAxisFormat(ImAxis axis, const char* fmt);
 // Sets the format of numeric axis labels via formatter callback. Given #value, write a label into #buff. Optionally pass user data.
@@ -839,8 +846,15 @@ IMPLOT_API void SetupFinish();
 
 // Sets an upcoming axis range limits. If ImPlotCond_Always is used, the axes limits will be locked.
 IMPLOT_API void SetNextAxisLimits(ImAxis axis, double v_min, double v_max, ImPlotCond cond = ImPlotCond_Once);
-// Links an upcoming axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot!
-IMPLOT_API void SetNextAxisLinks(ImAxis axis, double* link_min, double* link_max);
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+    // Links an upcoming axis range limits to external values. Set to nullptr for no linkage. The pointer data must remain valid until EndPlot!
+    IMPLOT_API void SetNextAxisLinks(ImAxis axis, double* link_min, double* link_max);
+#endif
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    // Links an upcoming axis range limits to external values. Use BoxedValue to transmit values (which will be updated after EndPlot).
+    IMPLOT_API inline void SetNextAxisLinks(ImAxis axis, BoxedValue* link_min, BoxedValue* link_max) { SetNextAxisLinks(axis, &link_min->value, &link_max->value); }
+#endif
+
 // Set an upcoming axis to auto fit to its data.
 IMPLOT_API void SetNextAxisToFit(ImAxis axis);
 
