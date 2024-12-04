@@ -54,6 +54,7 @@
 // IMGUI_BUNDLE_PYTHON_API is defined when building the python bindings.
 #ifdef IMGUI_BUNDLE_PYTHON_API
 #include <vector>
+#include <string>
 struct BoxedValue { double value; };
 #endif
 // [/ADAPT_IMGUI_BUNDLE]
@@ -941,8 +942,18 @@ IMPLOT_TMP void PlotBars(const char* label_id, const T* values, int count, doubl
 IMPLOT_TMP void PlotBars(const char* label_id, const T* xs, const T* ys, int count, double bar_size, ImPlotBarsFlags flags=0, int offset=0, int stride=sizeof(T));
 IMPLOT_API void PlotBarsG(const char* label_id, ImPlotGetter getter, void* data, int count, double bar_size, ImPlotBarsFlags flags=0);
 
-// Plots a group of bars. #values is a row-major matrix with #item_count rows and #group_count cols. #label_ids should have #item_count elements.
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+// Plots a group of bars. #values is a row-major matrix with #item_count rows and #group_count cols.
+// #label_ids should have #item_count elements.
 IMPLOT_TMP void PlotBarGroups(const char* const label_ids[], const T* values, int item_count, int group_count, double group_size=0.67, double shift=0, ImPlotBarGroupsFlags flags=0);
+#endif
+#ifdef IMGUI_BUNDLE_PYTHON_API
+// Plots a group of bars.
+// - values should be a **1 dimension** numpy array of values.
+// - label_ids should be a list of strings corresponding to bars labels
+IMPLOT_TMP void PlotBarGroups(const std::vector<std::string>& label_ids, const T* values, int count, double group_size=0.67, double shift=0, ImPlotBarGroupsFlags flags=0);
+#endif
+
 
 // Plots vertical error bar. The label_id should be the same as the label_id of the associated line or bar plot.
 IMPLOT_TMP void PlotErrorBars(const char* label_id, const T* xs, const T* ys, const T* err, int count, ImPlotErrorBarsFlags flags=0, int offset=0, int stride=sizeof(T));

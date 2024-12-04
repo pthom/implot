@@ -2002,6 +2002,57 @@ void PlotBarGroups(const char* const label_ids[], const T* values, int item_coun
 CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
 #undef INSTANTIATE_MACRO
 
+#ifdef IMGUI_BUNDLE_PYTHON_API
+template <typename T>
+void PlotBarGroups(const std::vector<std::string>& label_ids, const T* values, int count, double group_size, double shift, ImPlotBarGroupsFlags flags)
+{
+    /*
+    We want to call this version:
+    // Plots a group of bars. #values is a row-major matrix with #item_count rows and #group_count cols.
+    // #label_ids should have #item_count elements.
+    IMPLOT_TMP void PlotBarGroups(
+        const char* const label_ids[],
+        const T* values,
+        int item_count,
+        int group_count,
+        double group_size=0.67,
+        double shift=0,
+        ImPlotBarGroupsFlags flags=0);
+
+        From this call
+        // Plots a group of bars.
+        // - values should be a **1 dimension** numpy array of values.
+        // - label_ids should be a list of strings. Its length will be the number of groups
+        // - count will be filled automatically by the number of elements in values (item_count * group_count)
+     */
+    // Ensure label_ids corresponds to items (bars)
+    int item_count = static_cast<int>(label_ids.size());
+
+    // Calculate group count
+    if (item_count == 0 || count % item_count != 0)
+    {
+        IM_ASSERT(false && "PlotBarGroups: the number of values must be a multiple of the number of labels.");
+        return;
+    }
+    int group_count = count / item_count;
+
+    // Create temp char*[] array for label_ids
+    const char** label_ids_c = new const char*[item_count];
+    for (int i = 0; i < item_count; ++i)
+    {
+        label_ids_c[i] = label_ids[i].c_str();
+    }
+
+    PlotBarGroups(label_ids_c, values, item_count, group_count, group_size, shift, flags);
+
+    delete[] label_ids_c;
+}
+#define INSTANTIATE_MACRO(T) template IMPLOT_API void PlotBarGroups<T>(const std::vector<std::string>& label_ids, const T* values, int count, double group_size, double shift, ImPlotBarGroupsFlags flags);
+    CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
+#undef INSTANTIATE_MACRO
+#endif // IMGUI_BUNDLE_PYTHON_API
+
+
 //-----------------------------------------------------------------------------
 // [SECTION] PlotErrorBars
 //-----------------------------------------------------------------------------
