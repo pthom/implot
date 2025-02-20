@@ -4552,6 +4552,12 @@ ImPlotStyle& GetStyle() {
     ImPlotContext& gp = *GImPlot;
     return gp.Style;
 }
+void SetStyle(const ImPlotStyle& style)
+{
+    IM_ASSERT_USER_ERROR(GImPlot != nullptr, "No current context. Did you call ImPlot::CreateContext() or ImPlot::SetCurrentContext()?");
+    ImPlotContext& gp = *GImPlot;
+    gp.Style = style;
+}
 
 void PushStyleColor(ImPlotCol idx, ImU32 col) {
     ImPlotContext& gp = *GImPlot;
