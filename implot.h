@@ -1318,6 +1318,8 @@ IMPLOT_API void ShowMetricsWindow(bool* p_popen = nullptr);
 
 // Shows the ImPlot demo window (add implot_demo.cpp to your sources!)
 IMPLOT_API void ShowDemoWindow(bool* p_open = nullptr);
+// Bundle: ShowAllDemos is extracted from ShowDemoWindow, so that it can be used without creating an ImGui window.
+IMPLOT_API void ShowAllDemos();
 
 }  // namespace ImPlot
 
