@@ -1159,6 +1159,7 @@ IMPLOT_API void EndDragDropSource();
 
 // Provides access to plot style structure for permanant modifications to colors, sizes, etc.
 IMPLOT_API ImPlotStyle& GetStyle();
+IMPLOT_API void SetStyle(const ImPlotStyle& style);
 
 // Style plot colors for current ImGui style (default).
 IMPLOT_API void StyleColorsAuto(ImPlotStyle* dst = nullptr);
