@@ -45,6 +45,10 @@
 #define GetBufSize GetSize
 #endif
 
+#ifdef IMGUI_BUNDLE_PYTHON_API
+#include <string>
+#endif
+
 //-----------------------------------------------------------------------------
 // [SECTION] Constants
 //-----------------------------------------------------------------------------
@@ -1632,6 +1636,15 @@ IMPLOT_API int FormatTime(const ImPlotTime& t, char* buffer, int size, ImPlotTim
 IMPLOT_API int FormatDate(const ImPlotTime& t, char* buffer, int size, ImPlotDateFmt fmt, bool use_iso_8601);
 // Formats the time and/or date parts of a timestamp t into a buffer according to #fmt
 IMPLOT_API int FormatDateTime(const ImPlotTime& t, char* buffer, int size, ImPlotDateTimeSpec fmt);
+
+#ifdef IMGUI_BUNDLE_PYTHON_API
+// Formats the time part of timestamp t into a buffer according to #fmt
+IMPLOT_API std::string FormatTimeStr(const ImPlotTime& t, ImPlotTimeFmt fmt, bool use_24_hr_clk);
+// Formats the date part of timestamp t into a buffer according to #fmt
+IMPLOT_API std::string FormatDateStr(const ImPlotTime& t, ImPlotDateFmt fmt, bool use_iso_8601);
+// Formats the time and/or date parts of a timestamp t into a buffer according to #fmt
+IMPLOT_API std::string FormatDateTimeStr(const ImPlotTime& t, ImPlotDateTimeSpec fmt);
+#endif
 
 // Shows a date picker widget block (year/month/day).
 // #level = 0 for day, 1 for month, 2 for year. Modified by user interaction.

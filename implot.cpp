@@ -1246,6 +1246,25 @@ int FormatDateTime(const ImPlotTime& t, char* buffer, int size, ImPlotDateTimeSp
     return written;
 }
 
+#ifdef IMGUI_BUNDLE_PYTHON_API
+    // Formats the time part of timestamp t into a buffer according to #fmt
+std::string FormatTimeStr(const ImPlotTime& t, ImPlotTimeFmt fmt, bool use_24_hr_clk)
+{
+    static char buffer[1024]; FormatTime(t, buffer, sizeof(buffer), fmt, use_24_hr_clk); return std::string(buffer);
+}
+    // Formats the date part of timestamp t into a buffer according to #fmt
+std::string FormatDateStr(const ImPlotTime& t, ImPlotDateFmt fmt, bool use_iso_8601)
+{
+    static char buffer[1024]; FormatDate(t, buffer, sizeof(buffer), fmt, use_iso_8601); return std::string(buffer);
+}
+    // Formats the time and/or date parts of a timestamp t into a buffer according to #fmt
+std::string FormatDateTimeStr(const ImPlotTime& t, ImPlotDateTimeSpec fmt)
+{
+    static char buffer[1024]; FormatDateTime(t, buffer, sizeof(buffer), fmt); return std::string(buffer);
+}
+#endif
+
+
 inline float GetDateTimeWidth(ImPlotDateTimeSpec fmt) {
     static const ImPlotTime t_max_width = MakeTime(2888, 12, 22, 12, 58, 58, 888888); // best guess at time that maximizes pixel width
     char buffer[32];
