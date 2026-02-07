@@ -2280,7 +2280,13 @@ void ShowAllDemos()
     }
 }
 
-void ShowDemoWindow(bool* p_open) {
+void ShowDemoWindow(bool* p_open)
+{
+    ShowDemoWindow_MaybeDocked(true, p_open);
+}
+
+void ShowDemoWindow_MaybeDocked(bool create_window, bool* p_open)
+{
     static bool show_implot_metrics      = false;
     static bool show_implot_style_editor = false;
     static bool show_imgui_metrics       = false;
@@ -2307,9 +2313,14 @@ void ShowDemoWindow(bool* p_open) {
     if (show_imgui_demo) {
         ImGui::ShowDemoWindow(&show_imgui_demo);
     }
-    ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(600, 750), ImGuiCond_FirstUseEver);
-    ImGui::Begin("ImPlot Demo", p_open, ImGuiWindowFlags_MenuBar);
+
+    if (create_window)
+    {
+        ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(600, 750), ImGuiCond_FirstUseEver);
+        ImGui::Begin("ImPlot Demo", p_open, ImGuiWindowFlags_MenuBar);
+    }
+
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("Tools")) {
             ImGui::MenuItem("Metrics",      nullptr, &show_implot_metrics);
@@ -2324,7 +2335,9 @@ void ShowDemoWindow(bool* p_open) {
     }
     //-------------------------------------------------------------------------
     ShowAllDemos();
-    ImGui::End();
+
+    if (create_window)
+        ImGui::End();
 }
 
 } // namespace ImPlot

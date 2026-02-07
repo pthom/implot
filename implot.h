@@ -1335,6 +1335,8 @@ IMPLOT_API void ShowMetricsWindow(bool* p_popen = nullptr);
 IMPLOT_API void ShowDemoWindow(bool* p_open = nullptr);
 // Bundle: ShowAllDemos is extracted from ShowDemoWindow, so that it can be used without creating an ImGui window.
 IMPLOT_API void ShowAllDemos();
+IMPLOT_API void  ShowDemoWindow_MaybeDocked(bool create_window, bool* p_open = NULL);
+
 
 }  // namespace ImPlot
 
