@@ -525,7 +525,13 @@ struct ImPlotSpec {
     int             Stride          = IMPLOT_AUTO;           // data stride in bytes; IMPLOT_AUTO will result in sizeof(T) where T is the type passed to PlotX
     ImPlotItemFlags Flags           = ImPlotItemFlags_None;  // optional item flags; can be composed from common ImPlotItemFlags and/or specialized ImPlotXFlags
 
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+    // Bundle: omit default constructor to generation of named constructor in Python (spec = ImPlotSpec(line_weight=..., marker=..., etc.) instead of spec = ImPlotSpec() and then setting properties manually)
     ImPlotSpec() { }
+#endif
+
+#ifdef IMGUI_BUNDLE_PYTHON_UNSUPPORTED_API
+    // We don't publish those in Python. Use named constructor instead.
 
     // Construct a plot item specification from (ImPlotProp,value) pairs in any order, e.g. ImPlotSpec(ImPlotProp_LineColor, my_color, ImPlotProp_Marker, 4.0f)
     template <typename ...Args>
@@ -574,6 +580,7 @@ struct ImPlotSpec {
         }
         IM_ASSERT(0 && "User provided an ImPlotProp which cannot be set from ImVec4 value!");
     }
+#endif
 };
 
 // Double precision version of ImVec2 used by ImPlot. Extensible by end users.
