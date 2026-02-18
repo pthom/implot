@@ -1446,6 +1446,9 @@ IMPLOT_API void ShowMetricsWindow(bool* p_popen = nullptr);
 
 // Shows the ImPlot demo window (add implot_demo.cpp to your sources!)
 IMPLOT_API void ShowDemoWindow(bool* p_open = nullptr);
+// Bundle: ShowDemoWindow_MaybeDocked is ShowDemoWindow, but can be used without creating an ImGui window.
+IMPLOT_API void  ShowDemoWindow_MaybeDocked(bool create_window, bool* p_open = NULL, ImGuiWindowFlags initial_extra_flags = 0, ImVec2 window_pos = ImVec2(0, 0), ImVec2 window_size = ImVec2(0, 0));
+
 
 }  // namespace ImPlot
 
