@@ -1144,6 +1144,7 @@ void Demo_NaNValues() {
 
 void Demo_PerIndexColors() {
     // Colorful Lines
+    IMGUI_DEMO_MARKER("Colorful Lines");
     static float xs1[1001], ys1[1001];
     static ImU32 colors1[1001];
     for (int i = 0; i < 1001; ++i) {
@@ -1179,6 +1180,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Shaded Plots
+    IMGUI_DEMO_MARKER("Colorful Shaded Plots");
     static float xs_shaded[1001], ys_shaded[1001], ys1_shaded[1001], ys2_shaded[1001], ys3_shaded[1001], ys4_shaded[1001];
     static ImU32 colors_shaded1[1001], colors_shaded2[1001];
     srand(0);
@@ -1269,6 +1271,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Bubbles
+    IMGUI_DEMO_MARKER("Colorful Bubbles");
     srand(0);
     static float xs_bubble[20], ys1_bubble[20], ys2_bubble[20], szs1_bubble[20], szs2_bubble[20];
     static ImU32 colors1_bubble[20], colors2_bubble[20];
@@ -1306,6 +1309,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Stairstep
+    IMGUI_DEMO_MARKER("Colorful Stairstep");
     static float ys1_stairs[21], ys2_stairs[21];
     static ImU32 colors1_stairs[21], colors2_stairs[21];
     for (int i = 0; i < 21; ++i) {
@@ -1358,6 +1362,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Bar Plots
+    IMGUI_DEMO_MARKER("Colorful Bar Plots");
     static ImS8 data_bars[10] = {1,2,3,4,5,6,7,8,9,10};
     static ImU32 colors_bars_v[10], colors_bars_h[10];
     for (int i = 0; i < 10; ++i) {
@@ -1385,6 +1390,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Stem Plots
+    IMGUI_DEMO_MARKER("Colorful Stem Plots");
     static double xs_stems[51], ys1_stems[51], ys2_stems[51];
     static ImU32 colors1_stems[51], colors2_stems[51];
     for (int i = 0; i < 51; ++i) {
@@ -1420,6 +1426,7 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Infinite Lines
+    IMGUI_DEMO_MARKER("Colorful Infinite Lines");
     if (ImPlot::BeginPlot("Colorful Infinite Lines", ImVec2(-1,0))) {
         ImPlot::SetupAxes("x","y");
         ImPlot::SetupAxesLimits(0, 10, -1, 10);
