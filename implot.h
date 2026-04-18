@@ -1313,10 +1313,10 @@ IMPLOT_API void PushStyleColor(ImPlotCol idx, const ImVec4& col);
 // Undo temporary style color modification(s). Undo multiple pushes at once by increasing count.
 IMPLOT_API void PopStyleColor(int count = 1);
 
-// Temporarily modify a style variable of float type. Don't forget to call PopStyleVar!
-IMPLOT_API void PushStyleVar(ImPlotStyleVar idx, float val);
 // Temporarily modify a style variable of int type. Don't forget to call PopStyleVar!
 IMPLOT_API void PushStyleVar(ImPlotStyleVar idx, int val);
+// Temporarily modify a style variable of float type. Don't forget to call PopStyleVar!
+IMPLOT_API void PushStyleVar(ImPlotStyleVar idx, float val);
 // Temporarily modify a style variable of ImVec2 type. Don't forget to call PopStyleVar!
 IMPLOT_API void PushStyleVar(ImPlotStyleVar idx, const ImVec2& val);
 // Undo temporary style variable modification(s). Undo multiple pushes at once by increasing count.
