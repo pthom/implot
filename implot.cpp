@@ -4060,7 +4060,13 @@ IMPLOT_API void TagYV(double y, const ImVec4& color, const char* fmt, va_list ar
     TagV(gp.CurrentPlot->CurrentY, y, color, fmt, args);
 }
 
-constexpr float DRAG_GRAB_HALF_SIZE = 4.0f;
+// [ADAPT_IMGUI_BUNDLE] the drag tools' grab (and their handles) is finger-sized on a touch screen
+static float DragGrabHalfSize() {
+    const bool touch = (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_IsTouchScreen) != 0;
+    return touch ? ImMax(4.0f, ImGui::GetFontSize() * 0.6f) : 4.0f;
+}
+#define DRAG_GRAB_HALF_SIZE DragGrabHalfSize()
+// [/ADAPT_IMGUI_BUNDLE]
 
 bool DragPoint(int n_id, double* x, double* y, const ImVec4& col, float radius, ImPlotDragToolFlags flags, bool* out_clicked, bool* out_hovered, bool* out_held) {
     ImGui::PushID("#IMPLOT_DRAG_POINT");
