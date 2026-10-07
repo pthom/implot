@@ -2113,7 +2113,9 @@ bool UpdateInput(ImPlotPlot& plot) {
 
     // SCROLL INPUT -----------------------------------------------------------
 
-    if (any_hov && ImHasFlag(IO.KeyMods, gp.InputMap.ZoomMod)) {
+    // The wheel zooms only when no other owner holds it: not while Dear ImGui keeps scrolling the window under the
+    // plot (its wheel lock), so that a page scrolled with the wheel does not stop on a plot that passes under the mouse
+    if (any_hov && ImHasFlag(IO.KeyMods, gp.InputMap.ZoomMod) && ImGui::TestKeyOwner(ImGuiKey_MouseWheelY, plot.ID)) {
 
         float zoom_rate = gp.InputMap.ZoomRate;
         if (IO.MouseWheel == 0.0f)
