@@ -881,7 +881,12 @@ IMPLOT_API inline bool BeginSubplotsWithRatios(const char* title_id,
 {
     if (row_col_ratios == nullptr)
         return BeginSubplots(title_id, rows, cols, size, flags, nullptr , nullptr);
-    return BeginSubplots(title_id, rows, cols, size, flags, row_col_ratios->row_ratios.data(), row_col_ratios->col_ratios.data());
+    // The ratios come from Python code, and BeginSubplots reads and writes `rows` (or `cols`) of them every frame
+    std::vector<float>& rr = row_col_ratios->row_ratios;
+    std::vector<float>& cr = row_col_ratios->col_ratios;
+    IM_ASSERT((rr.empty() || (int)rr.size() == rows) && "BeginSubplots: row_ratios must have one entry per row");
+    IM_ASSERT((cr.empty() || (int)cr.size() == cols) && "BeginSubplots: col_ratios must have one entry per column");
+    return BeginSubplots(title_id, rows, cols, size, flags, rr.empty() ? nullptr : rr.data(), cr.empty() ? nullptr : cr.data());
 }
 #endif
 
