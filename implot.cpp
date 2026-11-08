@@ -196,6 +196,9 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 #include "implot.h"
 #ifndef IMGUI_DISABLE
 #include "implot_internal.h"
+#ifdef IMGUI_BUNDLE_WITH_IMGUI_KIT
+#include "imgui_kit/imgui_kit.h"  // ImGuiTouch::SetRectTakesPinch
+#endif
 
 #include <stdlib.h>
 #include <unordered_map>
@@ -1952,6 +1955,12 @@ bool UpdateInput(ImPlotPlot& plot) {
 
     ImPlotContext& gp = *GImPlot;
     ImGuiIO& IO = ImGui::GetIO();
+
+#ifdef IMGUI_BUNDLE_WITH_IMGUI_KIT
+    // On a touch screen, a pinch on the plot zooms it, as the wheel does (each notch scales its range by
+    // 1 + ZoomRate), and two fingers moved together box-select (a finger already pans)
+    ImGuiTouch::SetRectTakesPinch(plot.PlotRect.Min, plot.PlotRect.Max, ImAbs(gp.InputMap.ZoomRate), gp.InputMap.Select);
+#endif
 
     // BUTTON STATE -----------------------------------------------------------
 
