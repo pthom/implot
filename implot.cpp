@@ -2145,7 +2145,9 @@ bool UpdateInput(ImPlotPlot& plot) {
             const bool equal_zoom   = axis_equal && x_axis.OrthoAxis != nullptr;
             const bool equal_locked = (equal_zoom != false) && x_axis.OrthoAxis->IsInputLocked();
             if (x_hov[i] && !x_axis.IsInputLocked() && !equal_locked) {
+                // Both wheel axes: a trackpad's zoom gesture has a sideways part, which would scroll the window
                 ImGui::SetKeyOwner(ImGuiKey_MouseWheelY, plot.ID);
+                ImGui::SetKeyOwner(ImGuiKey_MouseWheelX, plot.ID);
                 if (zoom_rate != 0.0f) {
                     const double plot_l = x_axis.PixelsToPlot(plot.PlotRect.Min.x - rect_size.x * tx * zoom_rate);
                     const double plot_r = x_axis.PixelsToPlot(plot.PlotRect.Max.x + rect_size.x * (1 - tx) * zoom_rate);
@@ -2162,7 +2164,9 @@ bool UpdateInput(ImPlotPlot& plot) {
             const bool equal_zoom   = axis_equal && y_axis.OrthoAxis != nullptr;
             const bool equal_locked = equal_zoom && y_axis.OrthoAxis->IsInputLocked();
             if (y_hov[i] && !y_axis.IsInputLocked() && !equal_locked) {
+                // Both wheel axes: a trackpad's zoom gesture has a sideways part, which would scroll the window
                 ImGui::SetKeyOwner(ImGuiKey_MouseWheelY, plot.ID);
+                ImGui::SetKeyOwner(ImGuiKey_MouseWheelX, plot.ID);
                 if (zoom_rate != 0.0f) {
                     const double plot_t = y_axis.PixelsToPlot(plot.PlotRect.Min.y - rect_size.y * ty * zoom_rate);
                     const double plot_b = y_axis.PixelsToPlot(plot.PlotRect.Max.y + rect_size.y * (1 - ty) * zoom_rate);
